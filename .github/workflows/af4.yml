@@ -165,7 +165,7 @@ jobs:
           echo "  💻 SSH: ssh runner@$TS_IP"
           echo "  🌐 Web : http://$TS_IP:8000  (Laravel)"
           echo "  🔀 9Router: http://$TS_IP:20128  (dashboard)"
-          echo "  🤖 OpenCode: http://$TS_IP:4096  (no password, tailnet only)"
+          echo "  🤖 OpenCode: http://$TS_IP:4096  (fixed password muse-af, tailnet only)"
           echo "  💾 Project: /home/runner/h-dashboard"
           echo "  🌍 Exit Node: Enabled (advertise-exit-node)"
           echo "=================================================="
@@ -556,6 +556,7 @@ jobs:
 
       - name: 13. Install OpenCode V2, restore state, configure MCPs + Superpowers plugin & start serve
         env:
+          OPENCODE_SERVER_PASSWORD: muse-af
           OPENCODE_DISABLE_AUTOUPDATE: "true"
           GH_TOKEN: ${{ secrets.MY_PAT }}
           NINE_ROUTER: ${{ inputs.nine_router }}
@@ -1046,13 +1047,13 @@ jobs:
           PYEOF3
 
           # 5. Start opencode serve in the background on 0.0.0.0:4096 so it
-          #    is reachable over Tailscale. No password (muse-op af fleet);
-          #    access is tailnet-only.
+          #    is reachable over Tailscale. Fixed password muse-af (not a
+          #    secret, muse-op af fleet); access is tailnet-only.
           cd /home/runner/h-dashboard
           nohup opencode serve --hostname 0.0.0.0 --port 4096 > /tmp/opencode.log 2>&1 &
           sleep 6
-          if curl -fsS http://localhost:4096/api/info > /dev/null 2>&1; then
-            echo '✅ opencode serve is live on http://localhost:4096 (no password, tailnet only)'
+          if curl -fsS -u "opencode:${OPENCODE_SERVER_PASSWORD}" http://localhost:4096/api/info > /dev/null 2>&1; then
+            echo '✅ opencode serve is live on http://localhost:4096 (fixed password muse-af, tailnet only)'
           else
             echo '⚠️ opencode serve did not come up — check /tmp/opencode.log'
           fi
